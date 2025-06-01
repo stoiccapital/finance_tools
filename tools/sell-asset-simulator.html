@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sell Asset Simulator | Asset Freedom</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .sim-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 2rem 1.5rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sim-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #222;
+        }
+        .form-group input {
+            padding: 0.6rem 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #fafafa;
+            color: #111;
+        }
+        .sim-btn {
+            padding: 0.7rem 1.5rem;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sim-btn:hover {
+            background: #333;
+        }
+        .results-box {
+            width: 100%;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            color: #111;
+        }
+        .results-box .success {
+            color: #1a7f37;
+            font-weight: 600;
+        }
+        .results-box .warn {
+            color: #c08000;
+            font-weight: 600;
+        }
+        .balance-table {
+            width: 100%;
+            margin: 1.5rem 0 0 0;
+            border-collapse: collapse;
+            font-size: 0.98rem;
+        }
+        .balance-table th, .balance-table td {
+            border: 1px solid #e0e0e0;
+            padding: 0.4rem 0.7rem;
+            text-align: right;
+        }
+        .balance-table th {
+            background: #f0f0f0;
+            color: #222;
+        }
+        .chart-placeholder {
+            width: 100%;
+            height: 120px;
+            background: #ededed;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 1rem;
+        }
+        @media (max-width: 600px) {
+            .sim-container {
+                padding: 1.5rem 0.5rem 1rem 0.5rem;
+            }
+            .balance-table th, .balance-table td {
+                padding: 0.3rem 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">💰 Asset Freedom</a>
+        <nav class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/blog">Blog</a>
+        </nav>
+    </header>
+    <main class="main" style="display: flex; flex-direction: column; align-items: center;">
+        <h1 class="tools-headline" style="margin-bottom: 0.5rem;">Sell Asset Simulator</h1>
+        <div style="text-align: center; color: #444; margin-bottom: 2.5rem; font-size: 1.1rem;">See how long your assets can last if you sell a portion each year to cover your expenses.</div>
+        <div class="sim-container">
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button id="mode-sim" type="button" class="sim-btn" style="background:#111;color:#fff;">Simulate Asset Depletion</button>
+                <button id="mode-assets" type="button" class="sim-btn" style="background:#f5f5f5;color:#111;">Required Assets for Income</button>
+            </div>
+            <form class="sim-form" id="simForm">
+                <div class="form-group">
+                    <label for="assets">Total Assets</label>
+                    <input type="number" id="assets" name="assets" placeholder="e.g. 500000" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalRate">Withdrawal Rate (%) <span style="color:#888;font-weight:400;">(optional)</span></label>
+                    <input type="number" id="withdrawalRate" name="withdrawalRate" placeholder="e.g. 4" min="0" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="withdrawal">Monthly Withdrawal Amount</label>
+                    <input type="number" id="withdrawal" name="withdrawal" placeholder="e.g. 2500" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="return">Expected Annual Return (%)</label>
+                    <input type="number" id="return" name="return" placeholder="e.g. 5" min="0" step="any" required>
+                </div>
+                <button type="submit" class="sim-btn">Simulate</button>
+            </form>
+            <form class="sim-form" id="assetsForm" style="display:none;">
+                <div class="form-group">
+                    <label for="desiredIncome">Desired Monthly Income</label>
+                    <input type="number" id="desiredIncome" name="desiredIncome" placeholder="e.g. 2500" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalRate2">Withdrawal Rate (%)</label>
+                    <input type="number" id="withdrawalRate2" name="withdrawalRate2" placeholder="e.g. 4" min="0" step="any" required>
+                </div>
+                <button type="submit" class="sim-btn">Calculate</button>
+            </form>
+            <div id="results" class="results-box" style="display:none;"></div>
+            <div class="chart-placeholder">[Bar chart coming soon]</div>
+        </div>
+    </main>
+    <script>
+        const modeSim = document.getElementById('mode-sim');
+        const modeAssets = document.getElementById('mode-assets');
+        const simForm = document.getElementById('simForm');
+        const assetsForm = document.getElementById('assetsForm');
+        const results = document.getElementById('results');
+        const assetsInput = document.getElementById('assets');
+        const withdrawalInput = document.getElementById('withdrawal');
+        const withdrawalRateInput = document.getElementById('withdrawalRate');
+
+        withdrawalRateInput.addEventListener('input', function() {
+            const assets = parseFloat(assetsInput.value);
+            const rate = parseFloat(withdrawalRateInput.value);
+            if (!isNaN(assets) && !isNaN(rate)) {
+                const monthly = (assets * (rate / 100)) / 12;
+                withdrawalInput.value = monthly ? monthly.toFixed(2) : '';
+                withdrawalInput.readOnly = true;
+            } else {
+                withdrawalInput.readOnly = false;
+            }
+        });
+        assetsInput.addEventListener('input', function() {
+            const rate = parseFloat(withdrawalRateInput.value);
+            const assets = parseFloat(assetsInput.value);
+            if (!isNaN(assets) && !isNaN(rate)) {
+                const monthly = (assets * (rate / 100)) / 12;
+                withdrawalInput.value = monthly ? monthly.toFixed(2) : '';
+                withdrawalInput.readOnly = true;
+            } else {
+                withdrawalInput.readOnly = false;
+            }
+        });
+        modeSim.onclick = () => {
+            modeSim.style.background = '#111';
+            modeSim.style.color = '#fff';
+            modeAssets.style.background = '#f5f5f5';
+            modeAssets.style.color = '#111';
+            simForm.style.display = '';
+            assetsForm.style.display = 'none';
+            results.style.display = 'none';
+        };
+        modeAssets.onclick = () => {
+            modeAssets.style.background = '#111';
+            modeAssets.style.color = '#fff';
+            modeSim.style.background = '#f5f5f5';
+            modeSim.style.color = '#111';
+            simForm.style.display = 'none';
+            assetsForm.style.display = '';
+            results.style.display = 'none';
+        };
+        simForm.onsubmit = function(e) {
+            e.preventDefault();
+            const assets = parseFloat(form.assets.value);
+            const withdrawal = parseFloat(form.withdrawal.value) * 12;
+            const ret = parseFloat(form.return.value);
+            if (isNaN(assets) || isNaN(withdrawal) || isNaN(ret) || ret < 0) return;
+            let balance = assets;
+            let year = 0;
+            const balances = [];
+            while (balance > 0 && year < 100) {
+                year++;
+                balance = balance * (1 + ret / 100) - withdrawal;
+                balances.push(balance > 0 ? balance : 0);
+                if (balance <= 0) break;
+            }
+            let html = '';
+            if (year >= 50 && balance > 0) {
+                html += `<div class='success'>✅ Your withdrawal rate is likely sustainable.</div>`;
+            } else {
+                html += `<div class='warn'>⚠️ Your assets will run out in ${year} year${year > 1 ? 's' : ''}.</div>`;
+            }
+            html += `<div style='margin-top:1.2rem;'><strong>Yearly Balances:</strong></div>`;
+            html += `<table class='balance-table'><tr><th>Year</th><th>End Balance (€)</th></tr>`;
+            for (let i = 0; i < Math.min(balances.length, 50); i++) {
+                html += `<tr><td>${i+1}</td><td>${balances[i].toLocaleString(undefined, {maximumFractionDigits:2})}</td></tr>`;
+            }
+            if (balances.length > 50) {
+                html += `<tr><td colspan='2'>…</td></tr>`;
+            }
+            html += `</table>`;
+            results.innerHTML = html;
+            results.style.display = 'block';
+        };
+        assetsForm.onsubmit = function(e) {
+            e.preventDefault();
+            const desiredIncome = parseFloat(assetsForm.desiredIncome.value);
+            const withdrawalRate = parseFloat(assetsForm.withdrawalRate2.value);
+            if (isNaN(desiredIncome) || isNaN(withdrawalRate) || withdrawalRate === 0) return;
+            const requiredAssets = (desiredIncome * 12) / (withdrawalRate / 100);
+            let html = `<div><strong>Required Assets:</strong> €${requiredAssets.toLocaleString(undefined, {maximumFractionDigits:2})}</div>`;
+            results.innerHTML = html;
+            results.style.display = 'block';
+        };
+    </script>
+</body>
+</html> 

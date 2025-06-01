@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrow Against Assets Calculator | Asset Freedom</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .borrow-container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 2rem 1.5rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .borrow-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #222;
+        }
+        .form-group input {
+            padding: 0.6rem 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #fafafa;
+            color: #111;
+        }
+        .borrow-btn {
+            padding: 0.7rem 1.5rem;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .borrow-btn:hover {
+            background: #333;
+        }
+        .results-box {
+            width: 100%;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            color: #111;
+        }
+        .results-box .success {
+            color: #1a7f37;
+            font-weight: 600;
+        }
+        .results-box .warn {
+            color: #c08000;
+            font-weight: 600;
+        }
+        .results-box .danger {
+            color: #c00;
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .borrow-container {
+                padding: 1.5rem 0.5rem 1rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">💰 Asset Freedom</a>
+        <nav class="nav">
+            <a href="/tools/">Tools</a>
+            <a href="/blog">Blog</a>
+        </nav>
+    </header>
+    <main class="main" style="display: flex; flex-direction: column; align-items: center;">
+        <h1 class="tools-headline" style="margin-bottom: 0.5rem;">Borrow Against Assets Calculator</h1>
+        <div style="text-align: center; color: #444; margin-bottom: 2.5rem; font-size: 1.1rem;">See how long you can fund your lifestyle by borrowing against your assets instead of selling them.</div>
+        <div class="borrow-container">
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button id="mode-sim" type="button" class="borrow-btn" style="background:#111;color:#fff;">Simulate Borrowing</button>
+                <button id="mode-assets" type="button" class="borrow-btn" style="background:#f5f5f5;color:#111;">Required Assets for Income</button>
+            </div>
+            <form class="borrow-form" id="borrowForm">
+                <div class="form-group">
+                    <label for="assets">Total Assets</label>
+                    <input type="number" id="assets" name="assets" placeholder="e.g. 500000" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="ltv">Loan-to-Value Ratio (%)</label>
+                    <input type="number" id="ltv" name="ltv" placeholder="e.g. 50" min="0" max="100" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="interest">Annual Interest Rate (%)</label>
+                    <input type="number" id="interest" name="interest" placeholder="e.g. 4" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="return">Expected Annual Return (%)</label>
+                    <input type="number" id="return" name="return" placeholder="e.g. 5" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="borrowPercent">Borrowing Amount (% of assets per year) <span style="color:#888;font-weight:400;">(optional)</span></label>
+                    <input type="number" id="borrowPercent" name="borrowPercent" placeholder="e.g. 4" min="0" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="spending">Desired Monthly Spending</label>
+                    <input type="number" id="spending" name="spending" placeholder="e.g. 2500" min="0" step="any" required>
+                </div>
+                <button type="submit" class="borrow-btn">Calculate</button>
+            </form>
+            <form class="borrow-form" id="assetsForm" style="display:none;">
+                <div class="form-group">
+                    <label for="desiredIncome">Desired Monthly Income</label>
+                    <input type="number" id="desiredIncome" name="desiredIncome" placeholder="e.g. 2500" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="ltv2">Loan-to-Value Ratio (%)</label>
+                    <input type="number" id="ltv2" name="ltv2" placeholder="e.g. 50" min="0" max="100" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="interest2">Annual Interest Rate (%)</label>
+                    <input type="number" id="interest2" name="interest2" placeholder="e.g. 4" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="return2">Expected Annual Return (%)</label>
+                    <input type="number" id="return2" name="return2" placeholder="e.g. 5" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="borrowPercent2">Borrowing Amount (% of assets per year) <span style="color:#888;font-weight:400;">(optional)</span></label>
+                    <input type="number" id="borrowPercent2" name="borrowPercent2" placeholder="e.g. 4" min="0" step="any">
+                </div>
+                <button type="submit" class="borrow-btn">Calculate</button>
+            </form>
+            <div id="results" class="results-box" style="display:none;"></div>
+        </div>
+    </main>
+    <script>
+        const modeSim = document.getElementById('mode-sim');
+        const modeAssets = document.getElementById('mode-assets');
+        const borrowForm = document.getElementById('borrowForm');
+        const assetsForm = document.getElementById('assetsForm');
+        const results = document.getElementById('results');
+        const borrowPercentInput = document.getElementById('borrowPercent');
+        const spendingInput = document.getElementById('spending');
+        modeSim.onclick = () => {
+            modeSim.style.background = '#111';
+            modeSim.style.color = '#fff';
+            modeAssets.style.background = '#f5f5f5';
+            modeAssets.style.color = '#111';
+            borrowForm.style.display = '';
+            assetsForm.style.display = 'none';
+            results.style.display = 'none';
+        };
+        modeAssets.onclick = () => {
+            modeAssets.style.background = '#111';
+            modeAssets.style.color = '#fff';
+            modeSim.style.background = '#f5f5f5';
+            modeSim.style.color = '#111';
+            borrowForm.style.display = 'none';
+            assetsForm.style.display = '';
+            results.style.display = 'none';
+        };
+        borrowPercentInput.addEventListener('input', function() {
+            const assets = parseFloat(borrowForm.assets.value);
+            const percent = parseFloat(borrowPercentInput.value);
+            if (!isNaN(assets) && !isNaN(percent)) {
+                const monthly = (assets * (percent / 100)) / 12;
+                spendingInput.value = monthly ? monthly.toFixed(2) : '';
+                spendingInput.readOnly = true;
+            } else {
+                spendingInput.readOnly = false;
+                spendingInput.value = '';
+            }
+        });
+        borrowForm.onsubmit = function(e) {
+            e.preventDefault();
+            let assets = parseFloat(borrowForm.assets.value);
+            const ltv = parseFloat(borrowForm.ltv.value);
+            const interest = parseFloat(borrowForm.interest.value);
+            const annualReturn = parseFloat(borrowForm.return.value);
+            let annualBorrow = 0;
+            const borrowPercent = parseFloat(borrowForm.borrowPercent.value);
+            if (!isNaN(borrowPercent)) {
+                annualBorrow = assets * (borrowPercent / 100);
+            } else {
+                const spending = parseFloat(borrowForm.spending.value);
+                if (isNaN(spending)) return;
+                annualBorrow = spending * 12;
+            }
+            if (isNaN(assets) || isNaN(ltv) || isNaN(interest) || isNaN(annualReturn) || ltv <= 0 || ltv > 100) return;
+            let year = 0;
+            let borrowed = 0;
+            let totalDebt = 0;
+            let tableRows = '';
+            const maxYears = 100;
+            while (assets > 0 && year < maxYears) {
+                year++;
+                // Compound asset growth
+                assets = assets * (1 + annualReturn / 100);
+                // Calculate max borrowable for this year
+                let maxBorrow = assets * (ltv / 100);
+                // Calculate annual borrow for this year
+                let toBorrow = 0;
+                if (!isNaN(borrowPercent)) {
+                    toBorrow = assets * (borrowPercent / 100);
+                } else {
+                    toBorrow = annualBorrow;
+                }
+                toBorrow = Math.min(toBorrow, maxBorrow - borrowed);
+                if (toBorrow < 0) toBorrow = 0;
+                borrowed += toBorrow;
+                // Interest compounds: add interest to total debt
+                let interestCost = borrowed * (interest / 100);
+                borrowed += interestCost; // interest is not paid, it compounds
+                // Deduct interest from assets
+                assets -= interestCost;
+                // If assets can't cover interest, break
+                if (assets < 0) assets = 0;
+                totalDebt = borrowed;
+                tableRows += `<tr><td>${year}</td><td>${formatLargeNumber(assets)}</td><td>${formatLargeNumber(toBorrow)}</td><td>${formatLargeNumber(interestCost)}</td><td>${formatLargeNumber(totalDebt)}</td></tr>`;
+                // If can't borrow enough to cover spending, break
+                if (toBorrow < (isNaN(borrowPercent) ? annualBorrow : assets * (borrowPercent / 100))) break;
+            }
+            let html = '';
+            if (ltv > 70) {
+                html += `<div class='danger'>⚠️ Warning: LTV above 70% is considered risky!</div>`;
+            }
+            html += `<div><strong>Years You Can Fund Lifestyle (with compounding):</strong> ${year}</div>`;
+            if (year >= 30) {
+                html += `<div class='success' style='margin-top:1rem;'>✅ Your plan is likely sustainable.</div>`;
+            } else {
+                html += `<div class='warn' style='margin-top:1rem;'>⚠️ You can fund your lifestyle for ${year} years.</div>`;
+            }
+            html += `<div style='margin-top:1.2rem;'><strong>Yearly Details:</strong></div>`;
+            html += `<table style='width:100%;margin-top:0.5rem;border-collapse:collapse;font-size:0.98rem;'><tr><th>Year</th><th>Assets (€)</th><th>Borrowed This Year (€)</th><th>Interest (€)</th><th>Total Debt (€)</th></tr>${tableRows}</table>`;
+            results.innerHTML = html;
+            results.style.display = 'block';
+        };
+        assetsForm.onsubmit = function(e) {
+            e.preventDefault();
+            const desiredIncome = parseFloat(assetsForm.desiredIncome.value);
+            const ltv = parseFloat(assetsForm.ltv2.value);
+            const interest = parseFloat(assetsForm.interest2.value);
+            const annualReturn = parseFloat(assetsForm.return2.value);
+            const borrowPercent = parseFloat(assetsForm.borrowPercent2.value);
+            if (isNaN(desiredIncome) || isNaN(ltv) || isNaN(interest) || isNaN(annualReturn) || ltv <= 0 || ltv > 100) return;
+            let requiredAssets = 0;
+            if (!isNaN(borrowPercent)) {
+                requiredAssets = (desiredIncome * 12) / (borrowPercent / 100);
+            } else {
+                requiredAssets = (desiredIncome * 12) / (ltv / 100);
+            }
+            let html = `<div><strong>Required Assets:</strong> ${formatLargeNumber(requiredAssets)}</div>`;
+            results.innerHTML = html;
+            results.style.display = 'block';
+        };
+        function formatLargeNumber(num) {
+            num = Number(num);
+            if (num >= 1e12) return (num / 1e12).toFixed(2).replace(/\.00$/, '') + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2).replace(/\.00$/, '') + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2).replace(/\.00$/, '') + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2).replace(/\.00$/, '') + 'K';
+            return '€' + num.toLocaleString(undefined, {maximumFractionDigits:2});
+        }
+    </script>
+</body>
+</html> 
